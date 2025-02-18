@@ -31,7 +31,6 @@ def index_view():
     opinion = Opinion.query.offset(offset_value).first()
     # Тут подключаем шаблон opinion.html:
     return render_template('opinion.html', opinion=opinion)
-    
 
 
 @app.route('/add')
