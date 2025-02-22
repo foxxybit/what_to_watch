@@ -1,4 +1,9 @@
-from datetime import datetime
+# what_to_watch/opinions_app/models.py
+
+from datetime import datetime, timezone
+# Если у вас установлен Python до версии 3.11, используйте другой импорт:
+# from datetime import datetime, timezone
+# А также поменяйте в коде UTC на timezone.utc
 
 from . import db
 
@@ -8,5 +13,28 @@ class Opinion(db.Model):
     title = db.Column(db.String(128), nullable=False)
     text = db.Column(db.Text, unique=True, nullable=False)
     source = db.Column(db.String(256))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, index=True,
+                          default=datetime.now(timezone.utc))
     added_by = db.Column(db.String(64))
+
+    # Вот он — новый метод:
+    def to_dict(self):
+        return dict(
+            id=self.id,
+            title=self.title,
+            text=self.text,
+            source=self.source,
+            timestamp=self.timestamp,
+            added_by=self.added_by
+        )
+
+    # Добавляем в модель метод-десериализатор.
+    # На вход метод принимает словарь data, полученный из JSON в запросе.
+    def from_dict(self, data):
+        # Для каждого поля модели, которое можно заполнить...
+        for field in ['title', 'text', 'source', 'added_by']:
+            # ...выполняется проверка — есть ли ключ с таким же именем в словаре:
+            if field in data:
+                # Если есть, добавляем значение из словаря
+                # в соответствующее поле объекта модели:
+                setattr(self, field, data[field])
